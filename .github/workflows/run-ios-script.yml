@@ -1,0 +1,41 @@
+name: Generate iOS framework
+
+on:
+  push:
+    branches:
+      - abhishek_GithubAction2
+
+jobs:
+  iOS-framework:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          brew update
+          brew install pkg-config libsodium openssl zeromq just jq
+
+      - name: Set up Rust
+        run: |
+          rustc --version
+          rustup default 1.78.0
+          rustc --version
+
+      - name: Run the script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+            echo "executing ios build"
+            chmod +x ./aries/wrappers/uniffi-aries-vcx/scripts/ios.build.cargo.sh
+            ./aries/wrappers/uniffi-aries-vcx/scripts/ios.build.cargo.sh
+            git config --global user.name "abhishek"
+            git config --global user.email "abhishek@instnt.org"
+            git add -A
+            git commit -m "Updating iOS swift API files"
+            git push
